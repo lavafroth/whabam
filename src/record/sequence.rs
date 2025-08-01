@@ -164,8 +164,7 @@ impl Sequence {
         SEQUENCE_MAPPER_ATCGN_ONLY[(nt ^ 0xf) as usize]
     }
 
-    /// Returns an iterator over a subsequence.
-    pub fn subseq<'a, R: RangeBounds<usize>>(&'a self, range: R) -> SubseqIter<'a> {
+    fn u8_to_u4_range<R: RangeBounds<usize>>(&self, range: R) -> Range<usize> {
         use std::ops::Bound::*;
         let start = match range.start_bound() {
             Included(&n) => n,
@@ -179,73 +178,39 @@ impl Sequence {
         };
         assert!(start <= end);
         assert!(end <= self.len);
+        start..end
+    }
+
+    /// Returns an iterator over a subsequence.
+    pub fn subseq<'a, R: RangeBounds<usize>>(&'a self, range: R) -> SubseqIter<'a> {
         SubseqIter {
             parent: self,
-            indices: start..end,
+            indices: self.u8_to_u4_range(range),
         }
     }
 
     /// Returns an iterator over a subsequence using only nucleotides A, C, G, T and N.
     pub fn subseq_acgtn_only<R: RangeBounds<usize>>(&self, range: R) -> SubseqIterAcgtn {
-        use std::ops::Bound::*;
-        let start = match range.start_bound() {
-            Included(&n) => n,
-            Excluded(&n) => n + 1,
-            Unbounded => 0,
-        };
-        let end = match range.end_bound() {
-            Included(&n) => n + 1,
-            Excluded(&n) => n,
-            Unbounded => self.len,
-        };
-        assert!(start <= end);
-        assert!(end <= self.len);
         SubseqIterAcgtn {
             parent: self,
-            indices: start..end,
+            indices: self.u8_to_u4_range(range),
         }
     }
 
     /// Returns an iterator over a reverse complement of a subsequence.
     pub fn rev_compl<R: RangeBounds<usize>>(&self, range: R) -> RevComplIter {
-        use std::ops::Bound::*;
-        let start = match range.start_bound() {
-            Included(&n) => n,
-            Excluded(&n) => n + 1,
-            Unbounded => 0,
-        };
-        let end = match range.end_bound() {
-            Included(&n) => n + 1,
-            Excluded(&n) => n,
-            Unbounded => self.len,
-        };
-        assert!(start <= end);
-        assert!(end <= self.len);
         RevComplIter {
             parent: self,
-            indices: (start..end).rev(),
+            indices: self.u8_to_u4_range(range).rev(),
         }
     }
 
     /// Returns an iterator over a reverse complement of a subsequence using only
     /// nucleotides A, C, G, T and N.
     pub fn rev_compl_acgtn_only<R: RangeBounds<usize>>(&self, range: R) -> RevComplIterAcgtn {
-        use std::ops::Bound::*;
-        let start = match range.start_bound() {
-            Included(&n) => n,
-            Excluded(&n) => n + 1,
-            Unbounded => 0,
-        };
-        let end = match range.end_bound() {
-            Included(&n) => n + 1,
-            Excluded(&n) => n,
-            Unbounded => self.len,
-        };
-        assert!(start <= end);
-        assert!(end <= self.len);
         RevComplIterAcgtn {
             parent: self,
-            indices: (start..end).rev(),
+            indices: self.u8_to_u4_range(range).rev(),
         }
     }
 
